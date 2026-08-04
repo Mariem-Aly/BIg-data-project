@@ -1,0 +1,16 @@
+agent.sources = src
+agent.channels = ch
+agent.sinks = sink
+
+agent.sources.src.type = spooldir
+agent.sources.src.spoolDir = /home/bigdata/flume_input
+
+agent.channels.ch.type = memory
+
+agent.sinks.sink.type = hdfs
+agent.sinks.sink.hdfs.path = hdfs://localhost:9000/project/raw
+agent.sinks.sink.hdfs.fileType = DataStream
+
+agent.sources.src.channels = ch
+agent.sinks.sink.channel = ch
+
