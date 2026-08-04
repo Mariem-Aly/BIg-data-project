@@ -1,59 +1,91 @@
-import pandas as pd 
+import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+
 df = pd.read_csv("train.csv")
-له
 print(df.head())
-df.info()
-print(df.isnull().sum())
-#filling missing values with 0
-df["Product_Category_2"] = df["Product_Category_2"].fillna(0)
-df["Product_Category_3"] = df["Product_Category_3"].fillna(0)
-print(df.isnull().sum())
-print(df.duplicated().sum())
-print(df.dtypes)
-df.columns = df.columns.str.lower()
-df.columns = df.columns.str.replace(" ", "_")
+print(df.info())
+print(df.describe())
 print(df.columns)
-#checking spaces and odd characters 
-for col in df.select_dtypes(include="object").columns:
-    print(col, df[col].unique()[:10])
-    df[col] = df[col].str.strip()
+print("\nMissing Values:")
+print(df.isnull().sum())
+print("\nDuplicate Rows:")
+print(df.duplicated().sum())
+# Splitting
+train_df, test_df = train_test_split(
+    df,
+    test_size=0.2,
+    random_state=42
+)
+#cleaning
+for data in [train_df, test_df]:
+
+    # Renaming columns
+    data.columns = data.columns.str.lower()
+
+    # Removing spaces
+    for col in data.select_dtypes(include="object").columns:
+        data[col] = data[col].str.strip()
+
+
+# Handling Missing Values
+train_df["product_category_2"] = train_df["product_category_2"].fillna(0)
+train_df["product_category_3"] = train_df["product_category_3"].fillna(0)
+
+test_df["product_category_2"] = test_df["product_category_2"].fillna(0)
+test_df["product_category_3"] = test_df["product_category_3"].fillna(0)
 # Convert product category columns from float to int after filling missing values
-df["product_category_2"] = df["product_category_2"].astype(int)
-df["product_category_3"] = df["product_category_3"].astype(int)
-print(df["purchase"].describe())
-q1 = df["purchase"].quantile(0.25)
-q3 = df["purchase"].quantile(0.75)
+for data in [train_df, test_df]:
+
+    data["product_category_2"] = data["product_category_2"].astype(int)
+    data["product_category_3"] = data["product_category_3"].astype(int)
+# Check Missing Values
+print(train_df.isnull().sum())
+print(test_df.isnull().sum())
+# Check Duplicates
+print(train_df.duplicated().sum())
+print(test_df.duplicated().sum())
+# Outlier Detection
+
+q1 = train_df["purchase"].quantile(0.25)
+q3 = train_df["purchase"].quantile(0.75)
 
 iqr = q3 - q1
 
-outliers = df[(df["purchase"] < q1 - 1.5*iqr) | 
-              (df["purchase"] > q3 + 1.5*iqr)]
-
-print(f"Number of outliers: {len(outliers)}")
-plt.figure(figsize=(8,5))
-plt.hist(df["purchase"], bins=50)
-plt.xlabel("Purchase Amount")
-plt.ylabel("Frequency")
-plt.title("Purchase Distribution")
-plt.show()
-#outliers were 2677 out of 550068 rows, which is less than 1% of the data
 lower_limit = q1 - 1.5 * iqr
 upper_limit = q3 + 1.5 * iqr
-df["purchase"] = df["purchase"].clip(lower=lower_limit, upper=upper_limit)
-print(df["purchase"].describe())
-plt.figure(figsize=(8,4))
-plt.boxplot(df["purchase"])
-plt.title("Purchase After Capping Outliers")
-plt.ylabel("Purchase")
-plt.show()
+
+# Histogram before
+
 plt.figure(figsize=(8,5))
-plt.hist(df["purchase"], bins=50, edgecolor="black")
-plt.title("Purchase Distribution After Capping")
-plt.xlabel("Purchase")
-plt.ylabel("Frequency")
+plt.hist(train_df["purchase"], bins=50)
+plt.title("Purchase Distribution Before Capping")
 plt.show()
-#checking categorical columns
-print(df["gender"].value_counts())
-print(df["city_category"].value_counts())
-print(df["marital_status"].value_counts())
+#outliers were 2677 out of 550068 rows, which is less than 1% of the data
+
+# Apply Capping
+train_df["purchase"] = train_df["purchase"].clip(
+    lower=lower_limit,
+    upper=upper_limit
+)
+
+test_df["purchase"] = test_df["purchase"].clip(
+    lower=lower_limit,
+    upper=upper_limit
+)
+# Visualization
+plt.figure(figsize=(8,4))
+plt.boxplot(train_df["purchase"])
+plt.title("Purchase After Capping")
+plt.show()
+
+plt.figure(figsize=(8,5))
+plt.hist(train_df["purchase"], bins=50)
+plt.title("Purchase Distribution After Capping")
+plt.show()
+
+# Checking categorical columns
+
+print(train_df["gender"].value_counts())
+print(train_df["city_category"].value_counts())
+print(train_df["marital_status"].value_counts())
