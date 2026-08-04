@@ -45,6 +45,9 @@ print(test_df.isnull().sum())
 # Check Duplicates
 print(train_df.duplicated().sum())
 print(test_df.duplicated().sum())
+#dropping user_id and product_id columns 
+train_df = train_df.drop(columns=["user_id", "product_id"])
+test_df = test_df.drop(columns=["user_id", "product_id"])
 # Outlier Detection
 
 q1 = train_df["purchase"].quantile(0.25)
