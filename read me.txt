@@ -1,0 +1,41 @@
+# Data Ingestion using Apache Flume
+
+## Create Input Directory
+
+mkdir -p ~/flume_input
+
+## Create HDFS Directory
+
+hdfs dfs -mkdir -p /project/raw
+
+## Flume Configuration
+
+agent.sources = src
+agent.channels = ch
+agent.sinks = sink
+
+agent.sources.src.type = spooldir
+agent.sources.src.spoolDir = /home/bigdata/flume_input
+
+agent.channels.ch.type = memory
+
+agent.sinks.sink.type = hdfs
+agent.sinks.sink.hdfs.path = hdfs://localhost:9000/project/raw
+agent.sinks.sink.hdfs.fileType = DataStream
+
+agent.sources.src.channels = ch
+agent.sinks.sink.channel = ch
+
+## Run Flume
+
+flume-ng agent --conf conf --conf-file ~/flume.conf --name agent -Dflume.root.logger=INFO,console
+
+## Copy Dataset
+
+cp ~/Desktop/train.csv ~/flume_input/
+
+## Verify Data in HDFS
+
+hdfs dfs -ls /project/raw
+
+hdfs dfs -cat /project/raw/* | head
