@@ -237,11 +237,7 @@ test_data = test_df.drop(
 
 
 
-
-
-# -----------------------------
 # Encoding categorical columns
-# -----------------------------
 
 categorical_cols = [
     "gender",
@@ -287,10 +283,7 @@ encoder_model = encoder.fit(train_data)
 train_data = encoder_model.transform(train_data)
 test_data = encoder_model.transform(test_data)
 
-# -----------------------------
-# Combine features
-# -----------------------------
-
+# Combine features 
 feature_cols = [
     c for c in train_data.columns
     if c not in categorical_cols
@@ -320,9 +313,7 @@ train_data.select(
 ).show(5, truncate=False)
 
 
-# -----------------------------
 # Check categorical columns
-# -----------------------------
 
 print("Gender:")
 train_df.groupBy("gender") \
@@ -348,10 +339,7 @@ train_df.groupBy("marital_status") \
 from pyspark.ml.regression import RandomForestRegressor, GBTRegressor
 from pyspark.ml.evaluation import RegressionEvaluator
 
-# =============================
 # Random Forest
-# =============================
-
 rf = RandomForestRegressor(
     featuresCol="features",
     labelCol="purchase",
@@ -391,10 +379,7 @@ print("RMSE:", rf_rmse)
 print("MAE :", rf_mae)
 print("R²  :", rf_r2)
 
-
-# =============================
 # Gradient Boosted Trees
-# =============================
 
 gbt = GBTRegressor(
     featuresCol="features",
@@ -426,23 +411,14 @@ comparison = spark.createDataFrame([
 
 comparison.show()
 
-
-
-
-
-# =====================================================
-# Spark KMeans Clustering
-# =====================================================
+# KMeans Clustering
 
 from pyspark.ml.feature import StandardScaler
 from pyspark.ml.clustering import KMeans
 from pyspark.ml.evaluation import ClusteringEvaluator
 from pyspark.sql.functions import avg, count, max
 
-
-# =====================================================
 # 1. Scale Features
-# =====================================================
 
 scaler = StandardScaler(
     inputCol="features",
@@ -455,10 +431,7 @@ scaler_model = scaler.fit(train_data)
 
 train_cluster = scaler_model.transform(train_data)
 
-
-# =====================================================
 # 2. Elbow Method
-# =====================================================
 
 wcss = []
 
@@ -495,12 +468,7 @@ plt.ylabel("WCSS")
 plt.grid(True)
 plt.show()
 
-
-
-# =====================================================
-# 3. Train Final KMeans Model
-# =====================================================
-
+# 3. Train Final KMeans model
 kmeans = KMeans(
     featuresCol="scaled_features",
     predictionCol="Cluster",
@@ -526,11 +494,7 @@ clustered_df.select(
     "Cluster"
 ).show(10)
 
-
-
-# =====================================================
 # 4. Cluster Evaluation
-# =====================================================
 
 evaluator = ClusteringEvaluator(
     featuresCol="scaled_features",
@@ -542,11 +506,7 @@ silhouette = evaluator.evaluate(clustered_df)
 
 print("Silhouette Score:", silhouette)
 
-
-
-# =====================================================
 # 5. Average Purchase By Cluster
-# =====================================================
 
 cluster_purchase = (
     clustered_df
@@ -582,10 +542,7 @@ plt.ylabel("Average Purchase")
 plt.show()
 
 
-
-# =====================================================
 # 6. Number of Customers per Cluster
-# =====================================================
 
 cluster_count = (
     clustered_df
@@ -617,11 +574,7 @@ plt.ylabel("Customers")
 
 plt.show()
 
-
-
-# =====================================================
 # 7. Cluster Summary Table
-# =====================================================
 
 cluster_summary = (
     clustered_df
@@ -642,10 +595,7 @@ cluster_summary = (
 cluster_summary.show()
 
 
-
-# =====================================================
 # 8. Most Common Characteristics
-# =====================================================
 
 from pyspark.sql.window import Window
 from pyspark.sql.functions import row_number, desc
@@ -723,11 +673,7 @@ print("Final Cluster Summary")
 
 cluster_summary.show(truncate=False)
 
-
-
-# =====================================================
 # 9. Convert Final Summary for Visualization
-# =====================================================
 
 cluster_vis = cluster_summary.toPandas()
 
