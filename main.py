@@ -16,7 +16,7 @@ spark = SparkSession.builder \
 
 # Read CSV
 df = spark.read.csv(
-    "C:/Users/dubai phone/Desktop/vs python/big data project/train.csv",
+    "train.csv",
     header=True,
     inferSchema=True
 )
@@ -103,49 +103,35 @@ for c in [
     df.select(c).distinct().show()
 
 
+# Lowercase column names
+for c in df.columns:
+    df = df.withColumnRenamed(c, c.lower())
+
+
+# Remove spaces from string columns
+string_cols = [
+    f.name for f in df.schema.fields
+    if str(f.dataType) == "StringType()"
+]
+
+for c in string_cols:
+    df = df.withColumn(
+        c,
+        trim(col(c))
+    )
+
 # Top Product IDs
 df.groupBy("Product_ID") \
     .count() \
     .orderBy(col("count").desc()) \
     .show(10)
 
-#-----------------------------------------------------------------
-df.coalesce(1) \
-    .write \
-    .mode("overwrite") \
-    .option("header", True) \
-    .csv("hdfs:///user/hadoop/cleaned_data")
-
+    
 # Train/Test Split
 train_df, test_df = df.randomSplit(
     [0.8,0.2],
     seed=42
 )
-
-
-# Lowercase column names
-for c in train_df.columns:
-    train_df = train_df.withColumnRenamed(c, c.lower())
-    test_df = test_df.withColumnRenamed(c, c.lower())
-
-
-# Remove spaces from string columns
-string_cols = [
-    f.name for f in train_df.schema.fields
-    if str(f.dataType) == "StringType()"
-]
-
-
-for c in string_cols:
-    train_df = train_df.withColumn(
-        c,
-        trim(col(c))
-    )
-
-    test_df = test_df.withColumn(
-        c,
-        trim(col(c))
-    )
 
 
 # Missing values after cleaning
@@ -191,7 +177,6 @@ iqr = q3 - q1
 lower_limit = q1 - 1.5 * iqr
 upper_limit = q3 + 1.5 * iqr
 
-
 print("Lower:", lower_limit)
 print("Upper:", upper_limit)
 
@@ -215,7 +200,20 @@ test_df = test_df.withColumn(
 
 train_df.show(5)
 
+# Save cleaned train data
+# Save cleaned train data
+train_df.coalesce(1) \
+    .write \
+    .mode("overwrite") \
+    .option("header", True) \
+    .csv(r"C:\Users\user\Downloads\archive_2\processed\train")
 
+# Save cleaned test data
+test_df.coalesce(1) \
+    .write \
+    .mode("overwrite") \
+    .option("header", True) \
+    .csv(r"C:\Users\user\Downloads\archive_2\processed\test")
 
 
 """
